@@ -2,7 +2,7 @@ package kutuphane;
 
 /**
  * Öğrenci üyeleri temsil eden sınıf.
- * Member sınıfından türetilmiştir (Miras alma).
+ * Member sınıfından türetilmiştir.
  */
 public class StudentMember extends Member {
     private String studentNumber;
@@ -14,7 +14,7 @@ public class StudentMember extends Member {
      * @param studentNumber Öğrenci okul numarası
      */
     public StudentMember(String memberID, String name, String studentNumber) {
-        super(memberID, name); // Ata sınıfın (Member) kurucusunu çağırır
+        super(memberID, name); 
         this.studentNumber = studentNumber;
     }
 
@@ -34,6 +34,14 @@ public class StudentMember extends Member {
     @Override
     public int getMaxBookLimit() {
         return 5;
+    }
+
+    /**
+     * Öğrenciler için kitap ödünç alma süresi.
+     * Süre: 15 Gün.
+     */
+    public int getLoanPeriod() {
+        return 15;
     }
 
     public String getStudentNumber() {
