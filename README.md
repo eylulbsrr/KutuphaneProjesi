@@ -6,7 +6,7 @@ Bu proje, üniversite kütüphanelerinde yürütülen kitap ödünç/iade, üye 
 Sistem, kütüphane görevlilerinin (Admin) kitap ve üye yönetimini yapmasını sağlarken, öğrenci ve akademisyen üyelerin farklı kurallara göre kütüphane hizmetlerinden yararlanmasını simüle eder. Veriler uçucu bellekte değil, CSV dosyalarında tutularak kalıcılık sağlanmıştır.
 
 ## Kullanılan Teknolojiler
-* **Dil:** Java (JDK 17+)
+* **Dil:** Java 
 * **Mimari:** OOP (Encapsulation, Inheritance, Polymorphism, Abstraction)
 * **Veri Yönetimi:** Dosya İşlemleri (File Handling - CSV)
 * **Test:** JUnit 5 (Birim Testleri)
@@ -34,17 +34,19 @@ Program kapatıldığında veriler kaybolmaz. Tüm kitap ve üye kayıtları "bo
 
 ## Proje Dosya Yapısı
 
+```text
 src/kutuphane
 ├── Main.java               # Ana menü ve kullanıcı arayüzü
 ├── LibraryManager.java     # Kitap ve üye işlemlerini yöneten sınıf
 ├── Member.java             # (Abstract) Ana üye sınıfı
 ├── StudentMember.java      # Öğrenci sınıfı
 ├── AcademicMember.java     # Akademisyen sınıfı
-├── Book.java               # Kitap nesnesi ve özellikleri
+├── Book.java               # Kitap nesnesi
 ├── Loan.java               # Ödünç alma ve tarih işlemleri
-├── DataHelper.java         # CSV dosya okuma/yazma işlemleri
+├── DataHelper.java         # CSV okuma/yazma
 ├── EmailNotification.java  # Bildirim servisi
-└── LibraryTest.java        # JUnit test senaryoları
+└── LibraryTest.java        # JUnit testleri
+```
 
 ## Kurulum ve Çalıştırma
 
@@ -54,3 +56,6 @@ src/kutuphane
 4. Giriş Bilgileri:
    - Kullanıcı Adı: admin
    - Şifre: 1234
+
+---
+**Geliştirici:** Eylül Başer
