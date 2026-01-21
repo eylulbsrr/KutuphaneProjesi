@@ -1,29 +1,21 @@
 package kutuphane;
 
+import java.time.LocalDate; // <--- YENİ
 import java.util.ArrayList; 
 import java.util.Iterator; 
 import java.util.List;      
 
-/**
- * Kutuphane sisteminin ana yonetim sinifi.
- * Kitap ekleme, silme, odunc verme ve iade alma islemlerini yonetir.
- */
 public class LibraryManager {
     private List<Book> books;
     private List<Member> members;
     private List<Loan> activeLoans; 
     private NotificationService notificationService; 
 
-    /**
-     * Kurucu metod. Verileri dosyadan yukler.
-     * Dosya okunamazsa otomatik olarak acil durum uyelerini (Eylul, Burcu, Emir, Hoca) ekler.
-     */
     public LibraryManager() {
         this.books = DataHelper.loadBooks();
         this.members = DataHelper.loadMembers();
         this.activeLoans = new ArrayList<>();
         
-        // Eger dosyadan okunamazsa diye kontrol yapiyoruz
         boolean uyeVarMi = false;
         for (Member m : members) {
             if (m.getMemberID().equals("240312007")) {
@@ -32,41 +24,19 @@ public class LibraryManager {
             }
         }
         
-        // Dosya bos veya hataliysa tum uyeleri manuel ekliyoruz.
         if (!uyeVarMi) {
-            // Eylul
             this.members.add(new StudentMember("240312007", "Eylül Başer", "240312007"));
-            
-            // Burcu
             this.members.add(new StudentMember("101", "Burcu Başer", "101"));
-            
-            // Emir
             this.members.add(new StudentMember("102", "Emir Başer", "102"));
-            
-            // Fatmatul Hoca (Akademisyen)
             this.members.add(new AcademicMember("201", "Prof. Dr. Fatmatül Tarhan", "Bilgisayar Müh."));
-            
-            System.out.println(" SİSTEM NOTU: Üye dosyadan okunamadı. 'Eylül, Burcu, Emir ve Fatmatül Hoca' sisteme otomatik eklendi.");
+            System.out.println(" SİSTEM NOTU: Üye dosyadan okunamadı. Otomatik eklendi.");
         }
-
-
-        
 
         this.notificationService = new EmailNotification();
     }
 
-    /**
-     * Sisteme yeni kitap ekler.
-     * @param book Eklenecek kitap nesnesi
-     */
-    public void addBook(Book book) {
-        books.add(book);
-    }
+    public void addBook(Book book) { books.add(book); }
     
-    /**
-     * ISBN numarasina gore kitap siler. öduncteyse silmez.
-     * @param isbn Silinecek kitabin ISBN numarasi
-     */
     public void removeBook(String isbn) {
         Iterator<Book> iterator = books.iterator();
         boolean silindi = false;
@@ -84,62 +54,37 @@ public class LibraryManager {
                 break;
             }
         }
-        
-        if (!silindi) {
-            System.out.println("Kitap bulunamadı.");
-        }
+        if (!silindi) System.out.println("Kitap bulunamadı.");
     }
 
-    /**
-     * Sisteme yeni uye ekler.
-     * @param member Eklenecek uye
-     */
-    public void addMember(Member member) {
-        members.add(member);
-    }
+    public void addMember(Member member) { members.add(member); }
 
-    /**
-     * ISBN ile kitap arar.
-     * @param isbn Aranacak ISBN
-     * @return Kitap nesnesi
-     */
     public Book findBook(String isbn) {
         for (Book b : books) {
-            if (b.getIsbn().equals(isbn)) {
-                return b;
-            }
+            if (b.getIsbn().equals(isbn)) return b;
         }
         return null;
     }
 
-    /**
-     * ID ile uye arar.
-     * @param id Aranacak uye ID'si
-     * @return Uye nesnesi
-     */
     public Member findMember(String id) {
         for (Member m : members) {
-            if (m.getMemberID().equals(id)) {
-                return m;
-            }
+            if (m.getMemberID().equals(id)) return m;
         }
         return null;
     }
 
-    /**
-     * Kitap odunc verme islemini yapar.
-     * @param memberID Uyeyi temsil eden ID
-     * @param isbn Kitabin ISBN numarasi
-     */
-    public void borrowBook(String memberID, String isbn) {
+    // --- BURASI GÜNCELLENDİ: ARTIK TARİH ALIYOR ---
+    public void borrowBook(String memberID, String isbn, LocalDate islemTarihi) {
         Book book = findBook(isbn);
         Member member = findMember(memberID);
 
         if (book != null && member != null) {
             if (book.getStatus() == BookStatus.AVAILABLE) {
-                Loan loan = new Loan(book, member);
-                activeLoans.add(loan); 
                 
+                // Loan nesnesine gelen tarihi veriyoruz
+                Loan loan = new Loan(book, member, islemTarihi); 
+                
+                activeLoans.add(loan); 
                 book.setStatus(BookStatus.LOANED);
                 
                 notificationService.sendNotification("Sayın " + member.getName() + ", '" + book.getTitle() + "' kitabını aldınız.");
@@ -153,11 +98,13 @@ public class LibraryManager {
             System.out.println(" Hata: Kitap veya Üye bulunamadı.");
         }
     }
+    // ---------------------------------------------
 
-    /**
-     * Kitap iade alir ve ceza varsa hesaplar.
-     * @param isbn Iade edilen kitabin ISBN numarasi
-     */
+    // Bu metodu overload ediyoruz ki eski kodlar patlamasın (Opsiyonel ama güvenli)
+    public void borrowBook(String memberID, String isbn) {
+        borrowBook(memberID, isbn, LocalDate.now());
+    }
+
     public void returnBook(String isbn) {
         Loan foundLoan = null;
         for (Loan loan : activeLoans) {
@@ -173,6 +120,7 @@ public class LibraryManager {
             
             System.out.println("İade Alınıyor: " + book.getTitle());
             
+            // --- CEZA KONTROLÜ ZATEN VARDI, ÇALIŞACAK ---
             if (foundLoan.isOverdue()) {
                 long gun = foundLoan.getOverdueDays();
                 double ucret = member.calculateFee() * gun;
@@ -182,6 +130,7 @@ public class LibraryManager {
             } else {
                 System.out.println(" Teşekkürler, zamanında teslim ettiniz.");
             }
+            // --------------------------------------------
 
             book.setStatus(BookStatus.AVAILABLE);
             activeLoans.remove(foundLoan); 
@@ -193,10 +142,6 @@ public class LibraryManager {
         }
     }
 
-    /**
-     * Kitap ismine gore arama yapar.
-     * @param keyword Aranacak kelime
-     */
     public void searchLibrary(String keyword) {
         System.out.println("\n Arama Sonuçları (" + keyword + "):");
         boolean found = false;
@@ -209,20 +154,11 @@ public class LibraryManager {
         if (!found) System.out.println("Kayıt bulunamadı.");
     }
 
-    /**
-     * Degisiklikleri dosyaya kaydeder.
-     */
     public void saveChanges() {
         DataHelper.saveBooks(books);
         DataHelper.saveMembers(members);
         System.out.println(" Veriler kaydedildi.");
     }
 
-    /**
-     * Kitap listesini döndürür.
-     * @return List<Book>
-     */
-    public List<Book> getBooks() {
-        return this.books;
-    }
+    public List<Book> getBooks() { return this.books; }
 }
