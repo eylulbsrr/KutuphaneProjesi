@@ -1,7 +1,7 @@
 package kutuphane;
 
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit; 
+import java.time.temporal.ChronoUnit;
 
 /**
  * Ödünç alma (Loan) işlemini temsil eden sınıf.
@@ -9,36 +9,27 @@ import java.time.temporal.ChronoUnit;
  */
 public class Loan {
     
-    // SUNUM İÇİN AYAR: Burası 'true' ise kitap 30 gün önce alınmış gibi çalışır (Ceza çıkar).
-    // Normal kullanım için 'false' yapınız.
-    private boolean testModu = true; 
-
     private Book book;
     private Member member;
-    private LocalDate issuedDate; // Veriliş tarihi
-    private LocalDate dueDate;    // Son teslim tarihi
+    private LocalDate issuedDate; // Veriliş tarihi (Artık dışarıdan geliyor)
+    private LocalDate dueDate;    // Son teslim tarihi (Otomatik hesaplanıyor)
 
     /**
      * Kurucu metod (Constructor).
-     * Kitap ve üye bilgisini alır, veriliş ve teslim tarihlerini hesaplar.
-     * @param book Ödünç alınan kitap
+     * Artık tarihi parametre olarak alıyor.
+     * * @param book Ödünç alınan kitap
      * @param member Kitabı alan üye
+     * @param issuedDate Kitabın verildiği tarih (Kullanıcı tarafından girilen)
      */
-    public Loan(Book book, Member member) {
+    public Loan(Book book, Member member, LocalDate issuedDate) {
         this.book = book;
         this.member = member;
-        
-        // Test modu açıksa tarihi geriye al, kapalıysa bugünün tarihini at
-        if (testModu) {
-            this.issuedDate = LocalDate.now().minusDays(30); 
-        } else {
-            this.issuedDate = LocalDate.now();
-        }
+        this.issuedDate = issuedDate; // Kullanıcının girdiği tarihi buraya atıyoruz
         
         // Akademisyense 30 gün, değilse 15 gün süre ver
         int gunLimiti = (member instanceof AcademicMember) ? 30 : 15;
         
-        // Teslim tarihi, veriliş tarihinin üzerine eklenerek bulunur
+        // Teslim tarihi = Verilen Tarih + Gün Limiti
         this.dueDate = this.issuedDate.plusDays(gunLimiti);
     }
 
@@ -47,6 +38,7 @@ public class Loan {
      * @return Süre dolmuşsa true, dolmamışsa false döner.
      */
     public boolean isOverdue() {
+        // Son teslim tarihi bugünden önceyse süre dolmuştur
         return LocalDate.now().isAfter(dueDate);
     }
 
@@ -56,6 +48,7 @@ public class Loan {
      */
     public long getOverdueDays() {
         if (isOverdue()) {
+            // Son teslim tarihi ile BUGÜN arasındaki farkı hesaplar
             return ChronoUnit.DAYS.between(dueDate, LocalDate.now());
         }
         return 0;
